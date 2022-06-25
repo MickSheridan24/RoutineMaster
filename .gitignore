@@ -1,0 +1,17 @@
+launch.json
+tasks.json
+
+*.deps.json
+*.dll
+*.pdb
+project.assets.json
+
+*.targets
+*.props
+
+*.cache
+
+*/obj
+*/bin
+
+*.runtimeconfig.json
