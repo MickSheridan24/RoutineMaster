@@ -28,6 +28,7 @@ namespace RoutineMaster.Data
         public DbSet<ReadingEntry> ReadingEntries {get; set;}
         public DbSet<SavingsAccount> SavingsAccounts {get; set;}
         public DbSet<User> Users {get; set;}
+        public DbSet<UserIncome> UserIncomes { get; set; }
         
     }
 }
