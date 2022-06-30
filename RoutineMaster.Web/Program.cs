@@ -24,8 +24,6 @@ builder.Services.AddTransient<IHealthService, HealthService>();
 builder.Services.AddTransient<IFinanceService, FinanceService>();
 builder.Services.AddTransient<ICreativeProjectService, CreativeProjectService>();
 
-builder.Services.AddCors();
-
 
 var app = builder.Build();
 
@@ -41,5 +39,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
 app.Run();

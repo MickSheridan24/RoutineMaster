@@ -8,5 +8,7 @@ namespace RoutineMaster.Models.Entities
         public int? BudgetId {get; set;}
         public Budget Budget {get; set;}
         public double Amount {get; set;}
+        public string Name { get; set; }
     }
+    
 }

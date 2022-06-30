@@ -1,5 +1,5 @@
-using System.Data.Entity;
 using RoutineMaster.Data;
+using Microsoft.EntityFrameworkCore;
 using RoutineMaster.Models.Entities;
 
 namespace RoutineMaster.Service{

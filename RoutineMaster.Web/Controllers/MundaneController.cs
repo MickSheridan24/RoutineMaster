@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RoutineMaster.Models.Dtos;
 using RoutineMaster.Models.Entities;
 using RoutineMaster.Service;
 
@@ -26,7 +27,7 @@ namespace RoutineMaster.Web.Controllers
 
 
         [HttpPost("lists")]
-        public async Task<IActionResult> CreateMundaneList([FromBody] MundaneList list){
+        public async Task<IActionResult> CreateMundaneList([FromBody] CreateMundaneListDto list){
             await service.CreateMundaneList(1, list);
             return new OkResult();
         }
@@ -37,7 +38,7 @@ namespace RoutineMaster.Web.Controllers
             return new OkResult();
         }
 
-        [HttpPost("lists/{id}/items")]
+        [HttpPost("lists/{listId}/items")]
         public async Task<IActionResult> CreateMundaneListItem([FromRoute] int listId, [FromBody] MundaneListItem item){
             await service.CreateMundaneListItem(listId, item);
             return new OkResult();
@@ -46,6 +47,12 @@ namespace RoutineMaster.Web.Controllers
         [HttpPut("lists/items/{itemId}/complete")]
         public async Task<IActionResult> CompleteListItem([FromRoute] int itemId){
             await service.CompleteListItem(itemId);
+            return new OkResult();
+        }
+
+        [HttpDelete("lists/{listId}")]
+        public async Task<IActionResult> DeleteList([FromRoute] int listId){
+            await service.DeleteList(1, listId);
             return new OkResult();
         }
     }

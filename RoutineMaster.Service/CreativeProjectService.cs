@@ -1,4 +1,4 @@
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using RoutineMaster.Data;
 using RoutineMaster.Models.Entities;
 
@@ -33,7 +33,9 @@ namespace RoutineMaster.Service{
 
         public async Task<ICollection<CreativeProject>> GetProjects(int userId)
         {
-            return await context.CreativeProjects.Where(p => p.UserId == userId).ToListAsync();
+            return await context.CreativeProjects
+            .Include(c => c.Entries)
+            .Where(p => p.UserId == userId).ToListAsync();
         }
 
         public async Task UpdateProject(int userId, int id, CreativeProject project)
