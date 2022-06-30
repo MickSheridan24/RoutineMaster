@@ -46,7 +46,9 @@ namespace RoutineMaster.Service{
 
         public async Task<ICollection<ExpenseEntry>> GetExpenses(int userId)
         {
-            return await context.ExpenseEntries.Where(b => b.UserId == userId).ToListAsync();
+            return await context.ExpenseEntries
+            .Include(b => b.Budget)
+            .Where(b => b.UserId == userId).ToListAsync();
         }
 
         public async Task<ICollection<SavingsAccount>> GetFunds(int userId)
