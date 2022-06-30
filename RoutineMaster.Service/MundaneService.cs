@@ -1,4 +1,4 @@
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using RoutineMaster.Data;
 using RoutineMaster.Models.Entities;
 
