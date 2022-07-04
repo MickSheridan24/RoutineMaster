@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RoutineMaster.Models.Dtos;
 using RoutineMaster.Models.Entities;
 using RoutineMaster.Service;
 
@@ -45,7 +46,7 @@ namespace RoutineMaster.Web.Controllers
 
         [HttpPost("budgets")]
 
-        public async Task<IActionResult> CreateBudget([FromBody] Budget budget){
+        public async Task<IActionResult> CreateBudget([FromBody] CreateBudgetDto budget){
             await service.CreateBudget(1, budget);
             return new OkResult();
         }
@@ -78,5 +79,17 @@ namespace RoutineMaster.Web.Controllers
             return new OkResult();
         }
 
+        [HttpDelete("budgets/{id}")]
+        public async Task<IActionResult> DeleteBudget([FromRoute] int id){
+            await service.DeleteBudget(1, id);
+            return new OkResult();
+        }
+        
+        
+        [HttpDelete("funds/{id}")]
+        public async Task<IActionResult> DeleteFund([FromRoute] int id){
+            await service.DeleteFund(1, id);
+            return new OkResult();
+        }
     }
 }

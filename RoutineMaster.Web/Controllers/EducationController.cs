@@ -59,5 +59,13 @@ namespace RoutineMaster.Web.Controllers
 
             return new OkResult();
         }
+
+        [HttpDelete("books/{bookId}")]
+        public async Task<IActionResult> DeleteBook([FromRoute] int bookId){
+            await service.DeleteBook(1, bookId);
+            return new OkResult();
+        }
     }
+
+
 }

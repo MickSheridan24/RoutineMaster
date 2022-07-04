@@ -1,14 +1,13 @@
-namespace RoutineMaster.Models.Entities
+namespace RoutineMaster.Models.Dtos
 {
-    public class ExpenseEntry
+    public class ExpenseEntryDto
     {
-        public int UserId { get; set; }
         public int Id { get; set; }
         public DateTime Date { get; set; }
         public int? BudgetId {get; set;}
-        public Budget? Budget {get; set;}
+        public string? BudgetName {get; set;}
         public double Amount {get; set;}
         public string Name { get; set; }
+        
     }
-    
 }

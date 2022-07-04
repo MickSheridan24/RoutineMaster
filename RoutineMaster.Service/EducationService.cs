@@ -1,12 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using RoutineMaster.Data;
 using RoutineMaster.Models.Entities;
 
 namespace RoutineMaster.Service{
     public class EducationService : IEducationService{
         private RMDataContext context;
-        public EducationService(RMDataContext context){
+        private ILogger<EducationService> logger;
+
+        public EducationService(RMDataContext context, ILogger<EducationService> logger){
             this.context = context;
+            this.logger = logger;
         }
 
         public async Task<ICollection<Book>> GetBooks(int userId)
@@ -70,6 +74,16 @@ namespace RoutineMaster.Service{
             await context.CourseEntries.AddAsync(entry);
 
             await context.SaveChangesAsync();
+        }
+
+        public async Task DeleteBook(int userId, int bookId){
+            var book = context.Books.SingleOrDefault(b => b.Id == bookId && b.UserId == userId );
+            logger.LogInformation("DELETING " + bookId);
+            if(book != default){
+                logger.LogInformation("FOUND " + book.Name);
+                context.Books.Remove(book);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

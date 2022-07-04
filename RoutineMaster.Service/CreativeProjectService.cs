@@ -18,6 +18,8 @@ namespace RoutineMaster.Service{
 
         public async Task CreateProjectEntry(int userId, int projectId, CreativeProjectEntry entry)
         {
+            entry.CreativeProjectId = projectId;
+            entry.Date = DateTime.UtcNow;
             context.CreativeProjectEntries.Add(entry);
             await context.SaveChangesAsync();
         }

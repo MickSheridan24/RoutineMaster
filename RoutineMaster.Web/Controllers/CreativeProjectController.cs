@@ -37,8 +37,8 @@ namespace RoutineMaster.Web.Controllers
         }
 
         [HttpPost("projects/{id}/entries")]
-        public async Task<IActionResult> CreateProjectEntry([FromRoute] int projectId, [FromBody] CreativeProjectEntry entry){
-            await service.CreateProjectEntry(1, projectId, entry);
+        public async Task<IActionResult> CreateProjectEntry([FromRoute] int id, [FromBody] CreativeProjectEntry entry){
+            await service.CreateProjectEntry(1, id, entry);
             return new OkResult();
         }
     }

@@ -11,5 +11,6 @@ namespace RoutineMaster.Service
         Task<ICollection<Course>> GetCourses(int userId);
         Task CreateCourse(int userId, string name, int difficulty);
         Task CreateCourseEntry(int courseId, double percentCompleted);
+        Task DeleteBook(int userId, int bookId);
     }
 }
