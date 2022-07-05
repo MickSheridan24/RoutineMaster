@@ -29,9 +29,9 @@ namespace RoutineMaster.Web.Controllers
         }
 
 
-        [HttpGet("books/{id}/entries")]
-        public async Task<IActionResult> CreateReadingEntry([FromRoute] int bookId, [FromBody] ReadingEntry entry){
-            await service.CreateReadingEntry(bookId, entry.PagesRead);
+        [HttpPost("books/{id}/entries")]
+        public async Task<IActionResult> CreateReadingEntry([FromRoute] int id, [FromBody] ReadingEntry entry){
+            await service.CreateReadingEntry(id, entry.PagesRead);
 
             return new OkResult();
         }
@@ -53,9 +53,9 @@ namespace RoutineMaster.Web.Controllers
         }
 
 
-        [HttpGet("courses/{id}/entries")]
-        public async Task<IActionResult> CreateCourseEntry([FromRoute] int courseId, [FromBody] CourseEntry entry){
-            await service.CreateCourseEntry(courseId, entry.PercentCompleted);
+        [HttpPost("courses/{id}/entries")]
+        public async Task<IActionResult> CreateCourseEntry([FromRoute] int id, [FromBody] CourseEntry entry){
+            await service.CreateCourseEntry(id, entry.PercentCompleted);
 
             return new OkResult();
         }
@@ -63,6 +63,24 @@ namespace RoutineMaster.Web.Controllers
         [HttpDelete("books/{bookId}")]
         public async Task<IActionResult> DeleteBook([FromRoute] int bookId){
             await service.DeleteBook(1, bookId);
+            return new OkResult();
+        }
+
+        [HttpDelete("books/{bookId}/entries/{entryId}")]
+        public async Task<IActionResult> DeleteBookEntry([FromRoute] int bookId, [FromRoute] int entryId){
+            await service.DeleteBookEntry(1, bookId, entryId);
+            return new OkResult();
+        }
+
+        [HttpDelete("courses/{courseId}")]
+        public async Task<IActionResult> DeleteCourse([FromRoute] int courseId){
+            await service.DeleteCourse(1, courseId);
+            return new OkResult();
+        }
+
+        [HttpDelete("courses/{courseId}/entries/{entryId}")]
+        public async Task<IActionResult> DeleteCourseEntry([FromRoute] int courseId, [FromRoute] int entryId){
+            await service.DeleteCourseEntry(1, courseId, entryId);
             return new OkResult();
         }
     }

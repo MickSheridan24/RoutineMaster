@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RoutineMaster.Data;
+using RoutineMaster.Models.Dtos;
 using RoutineMaster.Models.Entities;
 
 namespace RoutineMaster.Service{
@@ -13,9 +14,23 @@ namespace RoutineMaster.Service{
             this.logger = logger;
         }
 
-        public async Task<ICollection<Book>> GetBooks(int userId)
+        public async Task<ICollection<BookDto>> GetBooks(int userId)
         {
-            return await context.Books.Where(b => b.UserId == userId).ToListAsync();
+            return await context.Books
+            .Include(b => b.Entries)
+            .Where(b => b.UserId == userId)
+            .Select(b => new BookDto(){
+                Id = b.Id,
+                Name = b.Name,
+                Difficulty = b.Difficulty,
+                TotalPages = b.TotalPages,
+                Entries = b.Entries.Select(e => new ReadingEntryDto{
+                    Date = e.Date,
+                    Id = e.Id,
+                    PagesRead = e.PagesRead
+                }).ToList()
+            })
+            .ToListAsync();
         }
 
         public async Task CreateBook(int userId, string name, int difficulty, int totalPages){
@@ -44,9 +59,22 @@ namespace RoutineMaster.Service{
             await context.SaveChangesAsync();
         }
 
-        public async Task<ICollection<Course>> GetCourses(int userId)
+        public async Task<ICollection<CourseDto>> GetCourses(int userId)
         {
-            return await context.Courses.Where(b => b.UserId == userId).ToListAsync();
+            return await context.Courses
+            .Include(c => c.Entries)
+            .Where(b => b.UserId == userId)
+            .Select(c => new CourseDto{
+                Id = c.Id,
+                Name = c.Name,
+                Difficulty = c.Difficulty,
+                Entries = c.Entries.Select(e => new CourseEntryDto{
+                    Id= e.Id,
+                    PercentCompleted = e.PercentCompleted,
+                    Date = e.Date
+                }).ToList()
+            })
+            .ToListAsync();
         }
 
         public async Task CreateCourse(int userId, string name, int difficulty)
@@ -82,6 +110,40 @@ namespace RoutineMaster.Service{
             if(book != default){
                 logger.LogInformation("FOUND " + book.Name);
                 context.Books.Remove(book);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteCourse(int userId, int courseId){
+            var course = context.Courses.SingleOrDefault(b => b.Id == courseId && b.UserId == userId );
+            logger.LogInformation("DELETING " + courseId);
+            if(course != default){
+                logger.LogInformation("FOUND " + course.Name);
+                context.Courses.Remove(course);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteBookEntry(int v, int bookId, int entryId)
+        {
+            var foundEntry = context.ReadingEntries.SingleOrDefault(e => e.Id == entryId && e.BookId == bookId);
+
+            if(foundEntry != default){
+                logger.LogInformation("FOUND READING ENTRY TO DELETE" + foundEntry.Id);
+
+                context.ReadingEntries.Remove(foundEntry);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteCourseEntry(int v, int courseId, int entryId)
+        {
+            var foundEntry = context.CourseEntries.SingleOrDefault(e => e.Id == entryId && e.CourseId == courseId);
+
+            if(foundEntry != default){
+                logger.LogInformation("FOUND Course ENTRY TO DELETE" + foundEntry.Id);
+
+                context.CourseEntries.Remove(foundEntry);
                 await context.SaveChangesAsync();
             }
         }
