@@ -11,7 +11,7 @@ namespace RoutineMaster.Service
         Task<ICollection<SavingsAccount>> GetFunds(int userId);
         Task UpdateUserIncome(int userId, UserIncome userIncome);
         Task CreateBudget(int userId, CreateBudgetDto budget);
-        Task UpdateBudget(int id, Budget budget);
+        Task UpdateBudget(int id, UpdateBudgetDto budget);
         Task CreateExpense(int userId, ExpenseEntry expenseEntry);
         Task CreateFund(int userId, SavingsAccount fund);
         Task DeleteExpense(int userId, int id);

@@ -132,14 +132,17 @@ namespace RoutineMaster.Service
         return null; 
     }
 
-    public async Task UpdateBudget(int id, Budget budget)
+    public async Task UpdateBudget(int id, UpdateBudgetDto budget)
     {
         var foundBudget = await context.Budgets.SingleOrDefaultAsync(b => b.Id == id);
-
+        logger.LogInformation("UPDATING {id}", id);
         if (foundBudget != default)
         {
+            logger.LogInformation("FOUND {amount}, {name}", foundBudget.Amount, foundBudget.Name);
+
             foundBudget.Amount = budget.Amount;
             foundBudget.Name = budget.Name;
+            foundBudget.SavingsAccountId = budget.FundId;
             await context.SaveChangesAsync();
         }
     }

@@ -53,7 +53,7 @@ namespace RoutineMaster.Web.Controllers
 
         [HttpPut("budgets/{id}")]
 
-        public async Task<IActionResult> UpdateBudget([FromRoute] int id, [FromBody] Budget budget){
+        public async Task<IActionResult> UpdateBudget([FromRoute] int id, [FromBody] UpdateBudgetDto budget){
             await service.UpdateBudget(id, budget);
             return new OkResult();
         }
