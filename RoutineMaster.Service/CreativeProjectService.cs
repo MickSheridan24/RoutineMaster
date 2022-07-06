@@ -33,6 +33,15 @@ namespace RoutineMaster.Service{
             }
         }
 
+        public async Task DeleteProjectEntry(int v, int projectId, int entryId)
+        {
+            var foundProject = await context.CreativeProjectEntries.SingleOrDefaultAsync(p => p.Id == entryId && p.CreativeProjectId == projectId);
+            if(foundProject != default){
+                context.CreativeProjectEntries.Remove(foundProject);
+                await context.SaveChangesAsync();
+            }
+        }
+
         public async Task<ICollection<CreativeProject>> GetProjects(int userId)
         {
             return await context.CreativeProjects

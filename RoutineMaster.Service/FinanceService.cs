@@ -88,7 +88,9 @@ namespace RoutineMaster.Service
             Spent = b.Entries.Select(e => e.Amount).Sum(),
             FundId = b.SavingsAccount != null ?  b.SavingsAccount!.Id : null,
             FundName = b.SavingsAccount != null ? b.SavingsAccount!.Name : null
-        }).ToListAsync();
+        })
+        .OrderByDescending(b => b.Spent / b.Amount)
+        .ToListAsync();
     }
 
     public async Task<ICollection<ExpenseEntryDto>> GetExpenses(int userId)

@@ -36,6 +36,13 @@ namespace RoutineMaster.Web.Controllers
             return new OkResult();
         }
 
+        [HttpDelete("projects/{id}/entries/{entryId}")]
+        public async Task<IActionResult> DeleteProjectEntry([FromRoute] int id, [FromRoute] int entryId){
+            await service.DeleteProjectEntry(1, id, entryId);
+            return new OkResult();
+        }
+
+
         [HttpPost("projects/{id}/entries")]
         public async Task<IActionResult> CreateProjectEntry([FromRoute] int id, [FromBody] CreativeProjectEntry entry){
             await service.CreateProjectEntry(1, id, entry);

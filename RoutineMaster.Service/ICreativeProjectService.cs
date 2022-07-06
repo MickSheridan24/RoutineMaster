@@ -9,5 +9,6 @@ namespace RoutineMaster.Service
         Task UpdateProject(int userId, int id, CreativeProject project);
         Task DeleteProject(int userId, int id);
         Task CreateProjectEntry(int userId, int projectId, CreativeProjectEntry entry);
+        Task DeleteProjectEntry(int v, int id, int entryId);
     }
 }
