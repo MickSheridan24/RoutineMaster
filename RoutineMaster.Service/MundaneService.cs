@@ -60,7 +60,7 @@ namespace RoutineMaster.Service
     public async Task<ICollection<MundaneList>> GetMundaneLists(int userId)
     {
         return await context.MundaneLists
-        .Include(m => m.Items)
+        .Include(m => m.Items.Where(i => !i.Complete))
         .Where(l => l.UserId == userId).ToListAsync();
     }
 
