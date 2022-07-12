@@ -12,10 +12,11 @@ namespace RoutineMaster.Service
         Task UpdateUserIncome(int userId, UserIncome userIncome);
         Task CreateBudget(int userId, CreateBudgetDto budget);
         Task UpdateBudget(int id, UpdateBudgetDto budget);
-        Task CreateExpense(int userId, ExpenseEntry expenseEntry);
+        Task CreateExpense(int userId, CreateExpenseEntryDto expenseEntry);
         Task CreateFund(int userId, SavingsAccount fund);
         Task DeleteExpense(int userId, int id);
         Task DeleteBudget(int userId, int id);
         Task DeleteFund(int userId, int id);
+        Task UpdateExpense(int userId, int id, UpdateExpenseDto expenseDto);
     }
 }

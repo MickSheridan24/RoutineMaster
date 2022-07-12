@@ -9,6 +9,8 @@ namespace RoutineMaster.Models.Entities
         public Budget? Budget {get; set;}
         public double Amount {get; set;}
         public string Name { get; set; }
+
+        public ICollection<ExpenseTag> ExpenseTags { get; set; } = new List<ExpenseTag>();
     }
     
 }

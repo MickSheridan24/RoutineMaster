@@ -51,6 +51,14 @@ namespace RoutineMaster.Web.Controllers
             return new OkResult();
         }
 
+
+        [HttpPut("expenses/{id}")]
+
+        public async Task<IActionResult> UpdateExpense([FromRoute] int id, [FromBody] UpdateExpenseDto expenseDto){
+            await service.UpdateExpense(1, id, expenseDto);
+            return new OkResult();
+        }
+
         [HttpPut("budgets/{id}")]
 
         public async Task<IActionResult> UpdateBudget([FromRoute] int id, [FromBody] UpdateBudgetDto budget){
@@ -60,7 +68,7 @@ namespace RoutineMaster.Web.Controllers
 
         [HttpPost("expenses")]
 
-        public async Task<IActionResult> CreateExpense([FromBody] ExpenseEntry expenseEntry){
+        public async Task<IActionResult> CreateExpense([FromBody] CreateExpenseEntryDto expenseEntry){
             await service.CreateExpense(1, expenseEntry);
             return new OkResult();
         }

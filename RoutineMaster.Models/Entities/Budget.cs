@@ -8,6 +8,10 @@ namespace RoutineMaster.Models.Entities
 
         public SavingsAccount SavingsAccount { get; set; }
 
+
+        public int? OverflowBudgetId { get; set; }
+        public Budget OverflowBudget {get; set;}
+
         public ICollection<ExpenseEntry> Entries { get; set; } = new List<ExpenseEntry>();
     }
 }

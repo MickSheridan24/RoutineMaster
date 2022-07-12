@@ -29,6 +29,16 @@ namespace RoutineMaster.Data
         public DbSet<SavingsAccount> SavingsAccounts {get; set;}
         public DbSet<User> Users {get; set;}
         public DbSet<UserIncome> UserIncomes { get; set; }
+
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<ExpenseTag> ExpenseTags { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder){
+            modelBuilder.Entity<ExpenseTag>().HasKey(e => new{e.TagId, e.ExpenseEntryId});
+
+            modelBuilder.Entity<ExpenseEntry>().HasMany(e => e.ExpenseTags).WithOne(t => t.ExpenseEntry);
+            modelBuilder.Entity<Tag>().HasMany(t => t.ExpenseTags).WithOne(e => e.Tag);
         
+        }
     }
 }
