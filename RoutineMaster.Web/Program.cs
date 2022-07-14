@@ -25,9 +25,6 @@ builder.Services.AddTransient<IHealthService, HealthService>();
 builder.Services.AddTransient<IFinanceService, FinanceService>();
 builder.Services.AddTransient<ICreativeProjectService, CreativeProjectService>();
 
-builder.WebHost.ConfigureKestrel(serverOptions => {
-    serverOptions.Listen(IPAddress.Any, 8000);
-});
 
 
 
