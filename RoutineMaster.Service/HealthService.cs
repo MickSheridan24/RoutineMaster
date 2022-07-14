@@ -1,6 +1,8 @@
-using System.Data.Entity;
 using RoutineMaster.Data;
+using Microsoft.EntityFrameworkCore;
+using RoutineMaster.Models.Dtos;
 using RoutineMaster.Models.Entities;
+using RoutineMaster.Models.Enums;
 
 namespace RoutineMaster.Service{
     public class HealthService : IHealthService{
@@ -27,15 +29,28 @@ namespace RoutineMaster.Service{
             return await context.ExerciseRoutines.Where(er => er.UserId == userId).ToListAsync();
         }
 
-        public async Task<ICollection<MealRating>> GetMeals(int userId)
+        public async Task<ICollection<MealRatingDto>> GetMeals(int userId)
         {
-            return await context.MealRatings.Where(er => er.UserId == userId).ToListAsync();
+            return await context.MealRatings.Where(er => er.UserId == userId)
+            .Where(m => m.Date.Day == DateTime.Today.Day)
+            .Select(m => new MealRatingDto{
+                Rating = m.Rating,
+                Date = m.Date,
+                MealType = m.MealType.ToString()
+            })
+            .ToListAsync();
         }
 
-        public async Task LogMealEntry(int userId, MealRating meal)
+        public async Task LogMealEntry(int userId, LogMealRatingDto meal)
         {
-            meal.UserId = userId;
-            context.MealRatings.Add(meal);
+            var entity = new MealRating{
+                UserId = userId,
+                Date = DateTime.UtcNow,
+                Rating = meal.Rating,
+                MealType = Enum.Parse<EMealType>(meal.MealType)
+            };
+
+            context.MealRatings.Add(entity);
             await context.SaveChangesAsync();
         }
 

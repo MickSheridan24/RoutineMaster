@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RoutineMaster.Models.Dtos;
 using RoutineMaster.Models.Entities;
 using RoutineMaster.Service;
 
@@ -8,8 +9,10 @@ namespace RoutineMaster.Web.Controllers
     {
         
         private IHealthService  service;
+        private ILogger<HealthController> logger;
     
-        public HealthController(IHealthService service){
+        public HealthController(IHealthService service, ILogger<HealthController> logger){
+            this.logger = logger;
             this.service = service;
         }
 
@@ -24,7 +27,8 @@ namespace RoutineMaster.Web.Controllers
         }
 
         [HttpPost("meals")]
-        public async Task<IActionResult> LogMealEntry([FromBody] MealRating meal){
+        public async Task<IActionResult> LogMealEntry([FromBody] LogMealRatingDto meal){
+            logger.LogInformation("In Meals Controller {meal}", meal);
             await service.LogMealEntry(1, meal);
             return new OkResult();
         }
