@@ -1,4 +1,5 @@
 using System.Configuration;
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using RoutineMaster.Data;
 using RoutineMaster.Service;
@@ -23,6 +24,11 @@ builder.Services.AddTransient<IMundaneService, MundaneService>();
 builder.Services.AddTransient<IHealthService, HealthService>();
 builder.Services.AddTransient<IFinanceService, FinanceService>();
 builder.Services.AddTransient<ICreativeProjectService, CreativeProjectService>();
+
+builder.WebHost.ConfigureKestrel(serverOptions => {
+    serverOptions.Listen(IPAddress.Any, 8000);
+});
+
 
 
 var app = builder.Build();
