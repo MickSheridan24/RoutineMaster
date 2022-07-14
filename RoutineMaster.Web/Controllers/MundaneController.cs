@@ -15,7 +15,7 @@ namespace RoutineMaster.Web.Controllers
     
         [HttpGet("serverTest")]
         public async Task<IActionResult> GetServerUpConfirmation(){
-            return new JsonResult("server up and running!");
+            return new JsonResult(await Task.FromResult("server up and running!"));
         }
 
 
