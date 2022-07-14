@@ -13,6 +13,11 @@ namespace RoutineMaster.Web.Controllers
             this.service = service;
         }
     
+        [HttpGet ("")]
+        public async Task<IActionResult> GetServerUpConfirmation(){
+            return new JsonResult("server up and running!");
+        }
+
 
         [HttpGet ("lists")]
         public async Task<IActionResult> GetMundaneLists(){
