@@ -222,6 +222,15 @@ namespace RoutineMaster.Service
             if (foundExpense != default)
             {
 
+                foreach (var tag in expenseDto.Tags)
+                {
+                    var found = context.Tags.FirstOrDefault(t => t.Name.ToLower() == tag.Name.ToLower());
+                    if(found != default){
+                        tag.Id = found.Id;
+                    }
+                }
+
+
                 foundExpense.Amount = expenseDto.Amount;
                 foundExpense.Name = expenseDto.Name;
                 foundExpense.BudgetId = expenseDto.BudgetId;
@@ -236,6 +245,7 @@ namespace RoutineMaster.Service
                 var toDelete = existingExpenseTags.Except(dtoExpenseTags.AsParallel()).ToList();
 
                 var toAdd = dtoExpenseTags.Except(existingExpenseTags.AsParallel()).ToList();
+
 
                 var toCreate = expenseDto.Tags.Where(t => t.Id == default)
                 .Select(c => new Tag{Name = c.Name, UserId = userId})
