@@ -10,11 +10,13 @@ namespace RoutineMaster.Service
     public class FinanceService : IFinanceService
     {
         private readonly ILogger<FinanceService> logger;
+        private readonly IScoreService scoreService;
         private RMDataContext context;
-        public FinanceService(RMDataContext context, ILogger<FinanceService> logger)
+        public FinanceService(RMDataContext context, IScoreService scoreService, ILogger<FinanceService> logger)
         {
             this.context = context;
             this.logger=logger;
+            this.scoreService = scoreService;
         }
 
         public async Task CreateBudget(int userId, CreateBudgetDto budgetDto)
@@ -48,11 +50,13 @@ namespace RoutineMaster.Service
             
             logger.LogInformation("CREATED TAGIDS {ids}", string.Join(" ", newTags.Select(t => t.Id)));
 
+            var now = DateTime.UtcNow;
 
+            logger.LogCritical("NOW {now}",  now);
             
             var entity = new ExpenseEntry{
                 UserId = userId,
-                Date = DateTime.UtcNow,
+                Date = now,
                 Name = expenseEntry.Name,
                 Amount = expenseEntry.Amount,
                 BudgetId = expenseEntry.BudgetId,
@@ -87,6 +91,8 @@ namespace RoutineMaster.Service
             await context.SaveChangesAsync();
 
             logger.LogInformation("CREATED EXPENSETAGIDS {ids}", string.Join(" ", newJoins.Select(t => t.ExpenseEntryId + "/" + t.TagId)));
+
+            await UpdateScore();
         }
 
         public async Task CreateFund(int userId, SavingsAccount fund)
@@ -105,15 +111,23 @@ namespace RoutineMaster.Service
                 context.ExpenseEntries.Remove(foundExpense);
                 await context.SaveChangesAsync();
             }
+
+            await UpdateScore();
+
         }
 
         public async Task DeleteBudget(int userId, int id)
         {
-            var foundBudget = context.Budgets.SingleOrDefault(e => e.Id == id);
+            var foundBudget = context.Budgets
+            .Include(b => b.Entries)
+            .SingleOrDefault(e => e.Id == id);
             logger.LogInformation("DELETING Budget {id}", id);
             if (foundBudget != default)
             {
-                context.Budgets.Remove(foundBudget);
+                if(foundBudget.Entries.Count() > 0){
+                    foundBudget.Archived = true;
+                }
+                else context.Budgets.Remove(foundBudget);
                 await context.SaveChangesAsync();
             }
         }
@@ -131,16 +145,17 @@ namespace RoutineMaster.Service
 
         public async Task<ICollection<BudgetDto>> GetBudgets(int userId)
         {
-            return await context.Budgets.Where(b => b.UserId == userId)
+            return await context.Budgets
+            .Where(b => b.UserId == userId && !b.Archived)
             .Select(b => new BudgetDto{
                 Name = b.Name,
                 Id = b.Id,
                 Amount = b.Amount,
-                Spent = b.Entries.Select(e => e.Amount).Sum(),
+                Spent = b.Entries.Where(e => e.Date.Month == DateTime.Now.Month).Select(e => e.Amount).Sum(),
                 FundId = b.SavingsAccount != null ?  b.SavingsAccount!.Id : null,
                 FundName = b.SavingsAccount != null ? b.SavingsAccount!.Name : null
             })
-            .OrderByDescending(b => b.Spent / b.Amount)
+            .OrderByDescending(b => b.Spent / (b.Amount  == 0 ? 1.0 : b.Amount))
             .ToListAsync();
         }
 
@@ -149,7 +164,7 @@ namespace RoutineMaster.Service
             return await context.ExpenseEntries
             .Include(b => b.Budget)
             .OrderByDescending(e => e.Date)
-            .Where(b => b.UserId == userId)
+            .Where(b => b.UserId == userId && b.Date.Month == DateTime.UtcNow.Month)
             .Select(e => new ExpenseEntryDto{
                 Id= e.Id,
                 Name = e.Name,
@@ -175,18 +190,67 @@ namespace RoutineMaster.Service
             var user = await context.Users
             .Include(u => u.UserIncome)
             .Include(u => u.Budgets)
-            .Include(u => u.ExpenseEntries.Where(e => e.Date.Month == DateTime.UtcNow.Month))
+            .Include(u => u.ExpenseEntries.Where(e => e.Date.Month == DateTime.UtcNow.Month && e.Date.Year == DateTime.UtcNow.Year))
             .SingleOrDefaultAsync(u => u.Id == userId);
 
             if(user != default){
                 return new UserIncomeDto(){
                     Amount = user.UserIncome.Amount,
                     IncidentalBonus = user.UserIncome.IncidentalBonus,
-                    Remaining = user.UserIncome.Amount - user.ExpenseEntries.Select(e => e.Amount).Sum(),
-                    Budgeted = user.Budgets.Select(b => b.Amount).Sum()
+                    Remaining = user.UserIncome.Amount - user.ExpenseEntries
+                    .Select(e => e.Amount).Sum(),
+                    Budgeted = user.Budgets
+                    .Where(b => !b.Archived)
+                    .Select(b => b.Amount).Sum()
                 };
             }
             return null; 
+        }
+
+        public async Task<IEnumerable<FinanceStatsSummaryDto>> GetFinanceSummary(){
+           
+            var ret = new List<FinanceStatsSummaryDto>();
+            for(var i = 0; i < DateTime.UtcNow.Day; i++){
+
+                var daySummary = new FinanceStatsSummaryDto{
+                    Present = context.ExpenseEntries.Where(e => e.Date.Day <= i + 1 && e.Date.Month == DateTime.UtcNow.Month && e.Date.Year == DateTime.UtcNow.Year)
+                    .Sum(e => e.Amount),
+                    LastMonth = context.ExpenseEntries.Where(e => e.Date.Day <= i + 1 && e.Date.Month == DateTime.UtcNow.AddMonths(-1).Month && e.Date.Year == DateTime.UtcNow.Year)
+                    .Sum(e => e.Amount),
+                    Average = CalculateAvgExpenseToDay(i + 1, DateTime.Parse("07-01-2022"))
+                };
+                ret.Add(daySummary);
+            }
+
+            return ret;
+           
+        }
+
+        private double CalculateAvgExpenseToDay(int day, DateTime? startDate = null){
+            var groupedByMonth = context.ExpenseEntries
+            .Where(e => e.Date.Year == DateTime.UtcNow.Year && e.Date.Day <= day) 
+            .ToList()
+            .GroupBy(e => e.Date.Month + " " + e.Date.Year, e => e);
+
+            var sums = groupedByMonth.Select(g => g.Sum(e => e.Amount));
+
+            if (startDate == null) startDate = DateTime.Parse(DateTime.UtcNow.Year.ToString());
+
+            var emptyMonths = 0;
+
+            for(var i = startDate.Value.Month; i <= DateTime.UtcNow.Month; i++){
+                if(!context.ExpenseEntries.Any(e => e.Date.Day <= day && e.Date.Month == i && e.Date.Year == startDate.Value.Year)){
+                    logger.LogCritical("EMPTY MONTH {m}", i);
+                    emptyMonths ++;
+                }
+            }
+
+
+            return  groupedByMonth.Count() > 0 ? sums.Sum() / (groupedByMonth.Count() + emptyMonths) : 0;
+        }    
+
+        private bool IsCurrentMonth(DateTime date)    {
+            return date.Month == DateTime.UtcNow.Month && date.Year == DateTime.UtcNow.Year;
         }
 
         public async Task UpdateBudget(int id, UpdateBudgetDto budget)
@@ -267,6 +331,52 @@ namespace RoutineMaster.Service
                 }));
                 await context.SaveChangesAsync();
             }
+        }
+
+        public async Task ArchiveMonth(int reference)
+        { 
+            //Increment funds
+            var relevantBudgets = await context.Budgets
+            .Include(b => b.SavingsAccount)
+            .Include(b => b.Entries)
+            .Where(b => b.SavingsAccountId != null)
+            .ToListAsync();
+
+            foreach (var budget in relevantBudgets)
+            {
+                foreach (var e in budget.Entries)
+                {
+                    logger.LogInformation("PROCESSING ENTRY " + e.Name + ", " + e.Amount + ", " + e.Date);
+                    logger.LogInformation(e.Date.Month.ToString() + ", " + reference + ", " + (e.Date.Month == reference).ToString());
+                }
+
+                var validEntries = budget.Entries
+                .Where(e => {
+                    return e.Date.Month == reference;
+                });
+
+                var total = validEntries.Sum(e => e.Amount);
+                logger.LogInformation(budget.Name + " : " + validEntries.Count() + " : " + total);
+
+                if(total < budget.Amount){
+                    budget.SavingsAccount.Amount += budget.Amount - total;
+                    await context.SaveChangesAsync();
+                }               
+            }
+        }
+
+        private async Task UpdateScore(){
+            var today = DateTime.Now;
+            var score = await context.ExpenseEntries
+            .Where(e => e.Date.Year == today.Year 
+            && e.Date.Month == today.Month 
+            && e.Date.Day == today.Day).CountAsync();
+            logger.LogCritical("UPDATING SCORE {s}", score);
+
+            var remaining = (int) GetUserIncome(1).Result.Remaining / (score * 100);
+
+            await scoreService.SetScore(Models.Enums.EScoreType.FINANCES, remaining + (score * 2));
+            
         }
     }
 }

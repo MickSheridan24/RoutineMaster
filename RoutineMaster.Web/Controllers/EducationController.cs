@@ -7,10 +7,12 @@ namespace RoutineMaster.Web.Controllers
     public class EducationController
     {
 
-        private IEducationService service; 
+        private IEducationService service;
+        private IScoreService scoreService;
 
-        public EducationController(IEducationService service){
+        public EducationController(IEducationService service, IScoreService scoreService){
             this.service = service;
+            this.scoreService = scoreService;
         }
 
         [HttpGet("books")]
@@ -83,6 +85,21 @@ namespace RoutineMaster.Web.Controllers
             await service.DeleteCourseEntry(1, courseId, entryId);
             return new OkResult();
         }
+
+        [HttpGet("readingSummary")]
+        public async Task<IActionResult> ReadingSummary(){
+            return new JsonResult(await service.GetReadingSummary());
+        }
+
+        [HttpGet("courseSummary")]
+        public async Task<IActionResult> CourseSummary(){
+            return new JsonResult(await service.GetCourseSummary());
+        }
+         [HttpGet("educationScore")]
+        public async Task<IActionResult> GetScore(){
+            return new JsonResult(scoreService.GetScore(Models.Enums.EScoreType.LEARNING));
+        }
+
     }
 
 

@@ -29,6 +29,7 @@ builder.Services.AddTransient<IMundaneService, MundaneService>();
 builder.Services.AddTransient<IHealthService, HealthService>();
 builder.Services.AddTransient<IFinanceService, FinanceService>();
 builder.Services.AddTransient<ICreativeProjectService, CreativeProjectService>();
+builder.Services.AddTransient<IScoreService, ScoreService>();
 
 // builder.Services.AddAuthentication(opt => {
 //     opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

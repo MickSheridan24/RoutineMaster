@@ -8,9 +8,14 @@ namespace RoutineMaster.Web.Controllers
     public class FinanceController
     {
         private IFinanceService service;
+        private ILogger<FinanceService> logger;
+        
+        private IScoreService scoreService;
 
-        public FinanceController(IFinanceService service){
+        public FinanceController(IFinanceService service, IScoreService scoreService, ILogger<FinanceService> logger){
             this.service = service;
+            this.logger = logger;
+            this.scoreService = scoreService;
         }
 
         [HttpGet("userIncome")]
@@ -89,6 +94,7 @@ namespace RoutineMaster.Web.Controllers
 
         [HttpDelete("budgets/{id}")]
         public async Task<IActionResult> DeleteBudget([FromRoute] int id){
+            logger.LogInformation("DELETIGN BUDGET {id}", id);
             await service.DeleteBudget(1, id);
             return new OkResult();
         }
@@ -98,6 +104,23 @@ namespace RoutineMaster.Web.Controllers
         public async Task<IActionResult> DeleteFund([FromRoute] int id){
             await service.DeleteFund(1, id);
             return new OkResult();
+        }
+
+
+        [HttpPost("archiveMonth")]
+        public async Task<IActionResult> ArchiveMonth([FromBody] int referenceMonth){
+            await service.ArchiveMonth(referenceMonth);
+            return new OkResult();
+        }
+
+        [HttpGet("financeSummary")]
+        public async Task<IActionResult> FinanceSummary(){
+            return new JsonResult(await service.GetFinanceSummary());
+        }
+
+        [HttpGet("financeScore")]
+        public async Task<IActionResult> GetScore(){
+            return new JsonResult(scoreService.GetScore(Models.Enums.EScoreType.FINANCES));
         }
     }
 }

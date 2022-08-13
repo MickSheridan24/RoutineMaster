@@ -8,10 +8,12 @@ namespace RoutineMaster.Service{
     public class EducationService : IEducationService{
         private RMDataContext context;
         private ILogger<EducationService> logger;
+        private IScoreService scoreService;
 
-        public EducationService(RMDataContext context, ILogger<EducationService> logger){
+        public EducationService(RMDataContext context, IScoreService scoreService, ILogger<EducationService> logger){
             this.context = context;
             this.logger = logger;
+            this.scoreService = scoreService;
         }
 
         public async Task<ICollection<BookDto>> GetBooks(int userId)
@@ -28,7 +30,9 @@ namespace RoutineMaster.Service{
                     Date = e.Date,
                     Id = e.Id,
                     PagesRead = e.PagesRead
-                }).ToList()
+                })
+                .OrderByDescending(e => e.Date)
+                .ToList()
             })
             .ToListAsync();
         }
@@ -57,6 +61,8 @@ namespace RoutineMaster.Service{
             await context.ReadingEntries.AddAsync(entry);
 
             await context.SaveChangesAsync();
+            await UpdateScore();
+
         }
 
         public async Task<ICollection<CourseDto>> GetCourses(int userId)
@@ -72,7 +78,9 @@ namespace RoutineMaster.Service{
                     Id= e.Id,
                     PercentCompleted = e.PercentCompleted,
                     Date = e.Date
-                }).ToList()
+                })
+                .OrderByDescending(e => e.Date)
+                .ToList()
             })
             .ToListAsync();
         }
@@ -102,6 +110,8 @@ namespace RoutineMaster.Service{
             await context.CourseEntries.AddAsync(entry);
 
             await context.SaveChangesAsync();
+            await UpdateScore();
+
         }
 
         public async Task DeleteBook(int userId, int bookId){
@@ -122,6 +132,7 @@ namespace RoutineMaster.Service{
                 context.Courses.Remove(course);
                 await context.SaveChangesAsync();
             }
+
         }
 
         public async Task DeleteBookEntry(int v, int bookId, int entryId)
@@ -134,6 +145,8 @@ namespace RoutineMaster.Service{
                 context.ReadingEntries.Remove(foundEntry);
                 await context.SaveChangesAsync();
             }
+            await UpdateScore();
+
         }
 
         public async Task DeleteCourseEntry(int v, int courseId, int entryId)
@@ -146,6 +159,120 @@ namespace RoutineMaster.Service{
                 context.CourseEntries.Remove(foundEntry);
                 await context.SaveChangesAsync();
             }
+
+            await UpdateScore();
         }
+
+        public async Task<IEnumerable<ReadingStatsDto>> GetReadingSummary(){
+           
+            var ret = new List<ReadingStatsDto>();
+            for(var i = 0; i < DateTime.UtcNow.Day; i++){
+
+                var daySummary = new ReadingStatsDto{
+                    Present = context.ReadingEntries.Where(e => e.Date.Day <= i + 1 && e.Date.Month == DateTime.UtcNow.Month && e.Date.Year == DateTime.UtcNow.Year)
+                    .Sum(e => e.PagesRead),
+                    LastMonth = context.ReadingEntries.Where(e => e.Date.Day <= i + 1 && e.Date.Month == DateTime.UtcNow.AddMonths(-1).Month && e.Date.Year == DateTime.UtcNow.Year)
+                    .Sum(e => e.PagesRead),
+                    Average = CalculateAvgPagesReadToDay(i + 1, DateTime.Parse("07-01-2022"))
+                };
+                ret.Add(daySummary);
+            }
+
+            return ret;
+           
+        }
+
+        private double CalculateAvgPagesReadToDay(int day, DateTime? startDate = null){
+            var groupedByMonth = context.ReadingEntries
+            .Where(e => e.Date.Year == DateTime.UtcNow.Year && e.Date.Day <= day) 
+            .ToList()
+            .GroupBy(e => e.Date.Month + " " + e.Date.Year, e => e);
+
+            var sums = groupedByMonth.Select(g => g.Sum(e => e.PagesRead));
+
+            if (startDate == null) startDate = DateTime.Parse(DateTime.UtcNow.Year.ToString());
+
+            var emptyMonths = 0;
+
+            for(var i = startDate.Value.Month; i <= DateTime.UtcNow.Month; i++){
+                if(!context.ReadingEntries.Any(e => e.Date.Day <= day && e.Date.Month == i && e.Date.Year == startDate.Value.Year)){
+                    logger.LogCritical("EMPTY MONTH {m}", i);
+                    emptyMonths ++;
+                }
+            }
+
+
+            return  groupedByMonth.Count() > 0 ? sums.Sum() / (groupedByMonth.Count() + emptyMonths) : 0;
+        }    
+
+        private bool IsCurrentMonth(DateTime date)    {
+            return date.Month == DateTime.UtcNow.Month && date.Year == DateTime.UtcNow.Year;
+        }
+
+        public async Task<IEnumerable<CourseStatsDto>> GetCourseSummary()
+        {
+            var ret = new List<CourseStatsDto>();
+            for(var i = 0; i < DateTime.UtcNow.Day; i++){
+
+                var daySummary = new CourseStatsDto{
+                    Present = context.CourseEntries.Where(e => e.Date.Day <= i + 1 && e.Date.Month == DateTime.UtcNow.Month && e.Date.Year == DateTime.UtcNow.Year)
+                    .Sum(e => e.PercentCompleted),
+                    LastMonth = context.CourseEntries.Where(e => e.Date.Day <= i + 1 && e.Date.Month == DateTime.UtcNow.AddMonths(-1).Month && e.Date.Year == DateTime.UtcNow.Year)
+                    .Sum(e => e.PercentCompleted),
+                    Average = CalculateAvgCourseProgressToDay(i + 1, DateTime.Parse("07-01-2022"))
+                };
+                ret.Add(daySummary);
+            }
+
+            return ret;
+        }
+
+        private double CalculateAvgCourseProgressToDay(int day, DateTime? startDate = null){
+            var groupedByMonth = context.CourseEntries
+            .Where(e => e.Date.Year == DateTime.UtcNow.Year && e.Date.Day <= day) 
+            .ToList()
+            .GroupBy(e => e.Date.Month + " " + e.Date.Year, e => e);
+
+            var sums = groupedByMonth.Select(g => g.Sum(e => e.PercentCompleted));
+
+            if (startDate == null) startDate = DateTime.Parse(DateTime.UtcNow.Year.ToString());
+
+            var emptyMonths = 0;
+
+            for(var i = startDate.Value.Month; i <= DateTime.UtcNow.Month; i++){
+                if(!context.CourseEntries.Any(e => e.Date.Day <= day && e.Date.Month == i && e.Date.Year == startDate.Value.Year)){
+                    logger.LogCritical("EMPTY MONTH {m}", i);
+                    emptyMonths ++;
+                }
+            }
+
+
+            return  groupedByMonth.Count() > 0 ? sums.Sum() / (groupedByMonth.Count() + emptyMonths) : 0;
+        }    
+
+        private async Task UpdateScore(){
+            var today = DateTime.Now;
+            var pageCount = context.ReadingEntries
+            .Where(e => e.Date.Year == today.Year 
+            && e.Date.Month == today.Month 
+            && e.Date.Day == today.Day)
+            .Sum(r => r.PagesRead);
+
+            var readingCount = pageCount > 0 ? 1 + pageCount / 15 : 0;
+
+            var courseCount = await context.CourseEntries
+            .Where(e => e.Date.Year == today.Year 
+            && e.Date.Month == today.Month 
+            && e.Date.Day == today.Day).CountAsync();
+
+
+            var score = readingCount + courseCount + (readingCount * courseCount);         
+
+
+
+            await scoreService.SetScore(Models.Enums.EScoreType.LEARNING, score);
+            
+        }
+
     }
 }

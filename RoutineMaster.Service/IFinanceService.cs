@@ -18,5 +18,9 @@ namespace RoutineMaster.Service
         Task DeleteBudget(int userId, int id);
         Task DeleteFund(int userId, int id);
         Task UpdateExpense(int userId, int id, UpdateExpenseDto expenseDto);
+        Task ArchiveMonth(int reference);
+
+
+        Task<IEnumerable<FinanceStatsSummaryDto>> GetFinanceSummary();
     }
 }

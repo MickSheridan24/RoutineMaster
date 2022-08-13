@@ -8,7 +8,7 @@ namespace RoutineMaster.Models.Entities
 
         public SavingsAccount SavingsAccount { get; set; }
 
-
+        public bool Archived {get; set;}
         public int? OverflowBudgetId { get; set; }
         public Budget OverflowBudget {get; set;}
 

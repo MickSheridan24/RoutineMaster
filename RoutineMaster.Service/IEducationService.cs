@@ -16,5 +16,7 @@ namespace RoutineMaster.Service
         Task DeleteBookEntry(int v, int bookId, int entryId);
         Task DeleteCourse(int userId, int courseId);
         Task DeleteCourseEntry(int v, int courseId, int entryId);
+        Task<IEnumerable<ReadingStatsDto>> GetReadingSummary();
+        Task<IEnumerable<CourseStatsDto>> GetCourseSummary();
     }
 }
