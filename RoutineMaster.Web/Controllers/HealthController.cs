@@ -26,6 +26,11 @@ namespace RoutineMaster.Web.Controllers
             return new JsonResult(await service.GetExerciseRoutines(1));
         }
 
+        [HttpGet("exerciseRoutines/entries")]
+        public async Task<IActionResult> GetExerciseEntries(){
+            return new JsonResult(await service.GetExerciseEntries(1));
+        }
+
         [HttpPost("meals")]
         public async Task<IActionResult> LogMealEntry([FromBody] LogMealRatingDto meal){
             logger.LogInformation("In Meals Controller {meal}", meal);

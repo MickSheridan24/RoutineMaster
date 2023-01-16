@@ -11,5 +11,6 @@ namespace RoutineMaster.Service
         Task UpdateExerciseRoutine(int userId, int id, ExerciseRoutine routine);
         Task CreateExerciseRoutineEntry(int userId, int id, ExerciseRoutineEntry routine);
         Task<ICollection<ExerciseRoutine>> GetExerciseRoutines(int userId);
+        Task<ICollection<ExerciseRoutineEntry>> GetExerciseEntries(int userId);
     }
 }

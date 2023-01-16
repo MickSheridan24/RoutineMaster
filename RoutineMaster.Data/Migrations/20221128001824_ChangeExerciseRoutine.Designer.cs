@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RoutineMaster.Data;
@@ -11,9 +12,10 @@ using RoutineMaster.Data;
 namespace RoutineMaster.Data.Migrations
 {
     [DbContext(typeof(RMDataContext))]
-    partial class RMDataContextModelSnapshot : ModelSnapshot
+    [Migration("20221128001824_ChangeExerciseRoutine")]
+    partial class ChangeExerciseRoutine
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -238,6 +240,9 @@ namespace RoutineMaster.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("RequiredOccurrences")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ScheduleAmount")
                         .HasColumnType("integer");
 
                     b.Property<int>("ScheduleType")

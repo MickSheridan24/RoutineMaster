@@ -197,7 +197,7 @@ namespace RoutineMaster.Service
                 return new UserIncomeDto(){
                     Amount = user.UserIncome.Amount,
                     IncidentalBonus = user.UserIncome.IncidentalBonus,
-                    Remaining = user.UserIncome.Amount - user.ExpenseEntries
+                    Remaining = user.UserIncome.Amount + user.UserIncome.IncidentalBonus - user.ExpenseEntries
                     .Select(e => e.Amount).Sum(),
                     Budgeted = user.Budgets
                     .Where(b => !b.Archived)
@@ -350,16 +350,13 @@ namespace RoutineMaster.Service
                     logger.LogInformation(e.Date.Month.ToString() + ", " + reference + ", " + (e.Date.Month == reference).ToString());
                 }
 
-                var validEntries = budget.Entries
-                .Where(e => {
-                    return e.Date.Month == reference;
-                });
+                var validEntries = budget.Entries.Where(e => e.Date.Month == reference);
 
-                var total = validEntries.Sum(e => e.Amount);
+                var total = validEntries.Count() > 0 ?  validEntries.Sum(e => e.Amount) : 0;
                 logger.LogInformation(budget.Name + " : " + validEntries.Count() + " : " + total);
 
                 if(total < budget.Amount){
-                    budget.SavingsAccount.Amount += budget.Amount - total;
+                    budget.SavingsAccount.Amount += Math.Round(budget.Amount - total, 2);
                     await context.SaveChangesAsync();
                 }               
             }

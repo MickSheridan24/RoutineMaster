@@ -24,6 +24,11 @@ namespace RoutineMaster.Service{
             await context.SaveChangesAsync();
         }
 
+        public async Task<ICollection<ExerciseRoutineEntry>> GetExerciseEntries(int userId)
+        {
+            return await context.ExerciseRoutineEntries.Where(er => er.Routine.UserId == userId).ToListAsync();
+        }
+
         public async Task<ICollection<ExerciseRoutine>> GetExerciseRoutines(int userId)
         {
             return await context.ExerciseRoutines.Where(er => er.UserId == userId).ToListAsync();
@@ -58,7 +63,8 @@ namespace RoutineMaster.Service{
         {
             var foundRoutine = await context.ExerciseRoutines.SingleOrDefaultAsync(r => r.Id == id);
             if(routine != default){
-                foundRoutine.Scale = routine.Scale;
+                foundRoutine.RequiredOccurrences = routine.RequiredOccurrences;
+                foundRoutine.ScheduleType = routine.ScheduleType;
                 foundRoutine.Name = routine.Name;
                 await context.SaveChangesAsync();
             }
